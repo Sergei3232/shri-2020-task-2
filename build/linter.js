@@ -10,46 +10,41 @@ const link = (str)=>{
       source: 'data.json'
     };
     
-    const jsonPars = parse(str, settings);
+    const jsonPars = parse(str, settings)
     
-    let item = 1;
-    for (const key in  jsonPars.children){
-        
-    // console.log(item, 'Ключ', jsonPars.children[key]['key']['value'])
-        if (jsonPars.children[key]['value']['value'] === undefined){
-    // console.log(item, 'Значение:', jsonPars.children[key]['value']['children'])
-            const blockWarning = jsonPars.children[key]['value']['children']
-            // console.log(blockWarning[0])
-            let item1 = 1;
-            for(log in blockWarning){
-                console.log(item1, blockWarning[log])
-                console.log(item1++,typeof blockWarning[log])
-                let item12 = 1   
-                for(log1 in blockWarning[log]){
-                    // console.log(item1, item12++, blockWarning[log][log1])    
-                } 
-            }
-            // stepBlock(blockWarning) 
-        }else{
-    // console.log(item, 'Значение', jsonPars.children[key]['value']['value'])
-        }        
-        
-
-        item++
-    }
+    let item = 1
+   
+    stepBlock(jsonPars)
+   
 }
 
-const stepBlock = (str) =>{
+const stepBlock = (jsonPars, num = 0) =>{
+   
     let item = 1;
-    console.log(typeof str['type'])
-    console.log(typeof str['children'])
-    console.log(typeof str['loc'])
-    for (key in str['children']){
-        console.log(item, 'Ключ', str[key])
-        console.log(item, 'Тип', typeof str['children'][key])
-        item++
-    //     // console.log('blockWarning')
+    for (key in jsonPars){
+
+        if(key === 'type' && jsonPars[key] === 'Object'){//type = 'Object' - это {..} - children это значения внутри фигурных скобок 
+            for (let i = 0; i < jsonPars['children'].length; i++){
+                stepBlock(jsonPars['children'][i])        
+            }
+        }else if(key === 'type' && jsonPars[key] === 'Property'){
+            console.log(jsonPars['key']['value'])
+            console.log(typeof jsonPars['value'])
+            console.log(jsonPars)
+            // console.log(jsonPars[key]['key'])
+            // console.log('Это объекты внутри обвертки')
+        }
+        // console.log(item++, key, jsonPars[key])
     }
+    // // console.log(typeof str['type'])
+    // console.log(typeof str['children'])
+    // console.log(typeof str['loc'])
+    // for (key in str['children']){
+    //     console.log(item, 'Ключ', str[key])
+    //     console.log(item, 'Тип', typeof str['children'][key])
+    //     item++
+    // //     // console.log('blockWarning')
+    // }
 }
     // console.log('Текущий children', jsonPars.children)
     // console.log('Текущий loc', jsonPars.loc)
