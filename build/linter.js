@@ -12,31 +12,10 @@ var link = (str)=>{
         }
     
     } 
-    // for (let key in jsonPars){
-    //     console.log( jsonPars[key])
-    //     console.log( "key",typeof key)
-    //     console.log( "jsonPars[key]",typeof jsonPars[key])
-
-    //     if (key === 'block' && jsonPars[key] === 'warning'){
-    //         parseWarningBlock(jsonPars[key])    
-    //     }
-    
-    // }
-    console.log(errorArray);
+    return errorArray
+    // console.log(errorArray);
 } 
 
-// const parseWarningBlock = (jsonPars) =>{
-
-//     for (let key in jsonPars){
-        
-//         if(key === "content"){
-            
-//             masArrya(jsonPars[key])   
-//         }
-    
-//     } 
-
-// }
 
 const masArrya = (content, levl = 0)=>{
 
@@ -49,10 +28,7 @@ const masArrya = (content, levl = 0)=>{
                     referenceSize = content[i].mods.size;    
                 }else if(content[i].mods.size != undefined && content[i].mods.size !== referenceSize){    
                     seterrorArray("WARNING.TEXT_SIZES_SHOULD_BE_EQUAL", "Тексты в блоке warning должны быть одного размера")
-                    // errorArray.push(
-                    //     {code: "WARNING.TEXT_SIZES_SHOULD_BE_EQUAL",
-                    //     error: "Тексты в блоке warning должны быть одного размера",
-                    //     });    
+                        
                 }    
             }
         }
@@ -114,4 +90,4 @@ const json = `{
     ]
 }`;
 
-link(json)
+export default link
