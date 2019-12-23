@@ -1,0 +1,19 @@
+{
+  "name": "text1",
+  "version": "1.0.0",
+  "description": "nodejs tutorial packadge",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nodejs",
+    "react",
+    "js"
+  ],
+  "author": "Sergey3232 <test@yandex.ru>",
+  "license": "ISC",
+  "dependencies": {
+    "json-to-ast": "^2.1.0"
+  }
+}
