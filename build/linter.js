@@ -3,91 +3,98 @@ const parse = require('json-to-ast');
 let referenceSize = null;
 const errorArray = [];
 
-const link = (str)=>{
-    
-    const settings = {      
-      loc: true,
-      source: 'data.json'
+const link = (str) => {
+
+    const settings = {
+        loc: true,
+        source: 'data.json'
     };
-    
+
     const jsonPars = parse(str, settings)
-    
-    let item = 1
-   
+
     stepBlock(jsonPars)
-   
+
 }
 
-const stepBlock = (jsonPars, num = 0) =>{
-   
-    let item = 1;
-    for (key in jsonPars){
+const stepBlock = (jsonPars, num = 0) => {
+    // console.log(jsonPars['type'])
 
-        if(key === 'type' && jsonPars[key] === 'Object'){//type = 'Object' - это {..} - children это значения внутри фигурных скобок 
-            for (let i = 0; i < jsonPars['children'].length; i++){
-                if(jsonPars['children'][i]['key']['value'] === 'block'){
-                    if(jsonPars['children'][i]['value']['value'] === 'warning'){
-                        regulationsWarning(jsonPars['children'])
-                    }                            
+    if (jsonPars['type'] === 'Object') {
+        const parsPbject = jsonPars['children']
+
+        for (let i = 0; i < parsPbject.length; i++) {
+            if (parsPbject[i]['key']['value'] === 'block') {
+                // Ищем блок Warning
+                if (parsPbject[i]['value']['value'] === 'warning') {
+                    regulationsWarning(parsPbject)
+                    // console.log('Это варнинг',parsPbject)    
                 }
-                // console.log(jsonPars['children'][i]['key']['value'])
-                // console.log(jsonPars['children'][i]['value']['type'])
-                // console.log(jsonPars['children'][i]['key']['value'] === 'block')
-                // console.log(typeof jsonPars['children'][i]['value'])
-                      
+                // console.log('Блок', parsPbject[i]['value']['value'])        
+            } else if (parsPbject[i]['value']['type'] === 'Array') {
+                stepBlock(parsPbject[i]['value'])
             }
-        }else if(key === 'type' && jsonPars[key] === 'Property'){
-
         }
-        
+    } else if (jsonPars['type'] === 'Array') {
+        const parsPbject = jsonPars['children']
+        for (let i = 0; i < parsPbject.length; i++) {
+            stepBlock(parsPbject[i])
+            // console.log(parsPbject[i]['type'])    
+        }
     }
-    
 }
 
-    
-const regulationsWarning = (block, levl = 0)=>{
-    
-    let nom = 1;
-    for (key in block){
-        console.log(levl, block[key]['key']['value'], block[key]['value']['value'])
-        // console.log(levl, block[key]['value']['value'])
-        // console.log(block[key]['type'])
-        
-        if(block[key]['type'] === 'Property'){
-            if(block[key]['value']['type'] === 'Array'){
-                for(let i = 0; i < block[key]['value']['children'].length; i++){
-                    if (block[key]['value']['children'][i]['type'] === 'Object'){
-                        regulationsWarning(block[key]['value']['children'][i]['children'], ++levl)    
-                    }
-                            // regulationsWarning(block[key]['value']['children'][i])
-                            // console.log(i, block[key]['value']['children'][i]['type'] === 'Object')    
-                        }    
+
+
+const regulationsWarning = (block) => {
+    console.log(block['type'])
+    if (block['type'] === undefined) {//При входе тип не будет определен пока не точно
+        for (let i = 0; i < block.length; i++) {
+            if (block[i]['key']['value'] === 'content') {
+                regulationsWarning(block[i]['value'])//Начинаем разбор 
             }
-            // if(block[key]['value']['type'] === 'Array'){
-            //     console.log('Key!',block[key])
 
-            //     console.log('children!',block[key]['value']['children'])    
-            // }
-            // regulationsWarning(block[key]['value'])
-
-            // console.log(nom++,block[key]['value']['type'])        
         }
+    }else if(block['type']==='Array'){
+        const parsPbject = block['children']
+        for (let i = 0; i < parsPbject.length; i++) {
+            regulationsWarning(parsPbject[i])    
+        }
+    }else if (block['type'] === 'Object') {
+        const parsPbject = block['children']
 
-        // if(block[key]['value']['type'] === 'Array'){
-        //     for(let i = 0; i < block[key]['value']['children'].length; i++){
-        //         // regulationsWarning(block[key]['value']['children'][i])
-        //         console.log(block[key]['value']['children'][i])    
-        //     }
-        //     // regulationsWarning(block[key]['value']['children'])
-        //     // console.log(block[key]['value']['children'])
-        //     // console.log(block[key]['value']['children'])    
-        // }else if(block[key]['value']['type'] === 'Object'){
-        //     console.log('Объект')
-        // }
+        for (let i = 0; i < parsPbject.length; i++) {
+            if (parsPbject[i]['key']['value'] === 'block') {
+                
+                if(parsPbject[i]['value']['value']==='text1'){
+                    console.log(parsPbject[i]['value'])    
+                }
+                // console.log('Тут block', parsPbject[i]['value']['value'])
 
-        // console.log(block[key]['value']['children'])
-        // console.log(jsonPars['children'][i]['value']['type'])
+                // console.log(parsPbject[i]['key'])
+                // Ищем блок Warning
+                // if (parsPbject[i]['value']['value'] === 'warning') {
+                //     regulationsWarning(parsPbject)
+                //     // console.log('Это варнинг',parsPbject)    
+                // }
+                // console.log('Блок', parsPbject[i]['value']['value'])        
+            } else if (parsPbject[i]['value']['type'] === 'Array') {
+                regulationsWarning(parsPbject[i]['value'])
+               
+                // console.log('Тут массив')
+                // console.log(parsPbject[i]['value'])
+                // console.log(parsPbject[i]['value'])
+                // stepBlock(parsPbject[i]['value'])
+            }
+        }
     }
+
+
+
+    // console.log(block)
+    // for (key in block){
+    //     console.log(key)   
+    // }
+
 }
 
 
@@ -124,44 +131,44 @@ const json = `{
     ]
 }`;
 
-const masArrya = (content, levl = 0)=>{
+const masArrya = (content, levl = 0) => {
 
-    for (let i=0; i<content.length; i++){
-        
-        if(content[i].block != undefined && content[i].block === 'text'){
+    for (let i = 0; i < content.length; i++) {
 
-            if(content[i].mods != undefined && content[i].mods.size != undefined){
-                if(referenceSize === null){    
-                    referenceSize = content[i].mods.size;    
-                }else if(content[i].mods.size != undefined && content[i].mods.size !== referenceSize){    
+        if (content[i].block != undefined && content[i].block === 'text') {
+
+            if (content[i].mods != undefined && content[i].mods.size != undefined) {
+                if (referenceSize === null) {
+                    referenceSize = content[i].mods.size;
+                } else if (content[i].mods.size != undefined && content[i].mods.size !== referenceSize) {
                     seterrorArray("WARNING.TEXT_SIZES_SHOULD_BE_EQUAL", "Тексты в блоке warning должны быть одного размера")
-                        
-                }    
+
+                }
             }
         }
 
         let testArrya = content[i];
 
-        for (let key in testArrya){
-                
-            if(key === "content"){
-                masArrya(testArrya[key], ++levl)    
-            }   
+        for (let key in testArrya) {
+
+            if (key === "content") {
+                masArrya(testArrya[key], ++levl)
+            }
         }
-               
-    }  
-     
+
+    }
+
 }
 
-const seterrorArray = (code = "", error= "")=>{
+const seterrorArray = (code = "", error = "") => {
     errorArray.push({
         code: code,
         error: error,
         location: {
             start: { column: 0, line: 0 },
             end: { column: 0, line: 0 }
-        }     
-    })        
+        }
+    })
 }
 
 
