@@ -25,60 +25,104 @@ const stepBlock = (jsonPars, num = 0) =>{
 
         if(key === 'type' && jsonPars[key] === 'Object'){//type = 'Object' - это {..} - children это значения внутри фигурных скобок 
             for (let i = 0; i < jsonPars['children'].length; i++){
-                stepBlock(jsonPars['children'][i])        
+                if(jsonPars['children'][i]['key']['value'] === 'block'){
+                    if(jsonPars['children'][i]['value']['value'] === 'warning'){
+                        regulationsWarning(jsonPars['children'])
+                    }                            
+                }
+                // console.log(jsonPars['children'][i]['key']['value'])
+                // console.log(jsonPars['children'][i]['value']['type'])
+                // console.log(jsonPars['children'][i]['key']['value'] === 'block')
+                // console.log(typeof jsonPars['children'][i]['value'])
+                      
             }
         }else if(key === 'type' && jsonPars[key] === 'Property'){
-            console.log(jsonPars['key']['value'])
-            console.log(typeof jsonPars['value'])
-            console.log(jsonPars)
-            // console.log(jsonPars[key]['key'])
-            // console.log('Это объекты внутри обвертки')
+
         }
-        // console.log(item++, key, jsonPars[key])
-    }
-    // // console.log(typeof str['type'])
-    // console.log(typeof str['children'])
-    // console.log(typeof str['loc'])
-    // for (key in str['children']){
-    //     console.log(item, 'Ключ', str[key])
-    //     console.log(item, 'Тип', typeof str['children'][key])
-    //     item++
-    // //     // console.log('blockWarning')
-    // }
-}
-    // console.log('Текущий children', jsonPars.children)
-    // console.log('Текущий loc', jsonPars.loc)
-    // console.log(typeof jsonPars)
-    // for (const element in jsonPars) {
-
-    //     console.log(typeof jsonPars[element]);
-
-    //     // console.log('Ключ', jsonPars[element])
-    //     // console.log('Значение', jsonPars[element])
-    //   }
-    // const jsonPars = JSON.parse(str)
-
-    // for (const element of jsonPars) {
-    //     console.log(element);
-    //   }
-
-    // console.log(typeof jsonPars['block'])
-    // for (let key in jsonPars){
-         
-    //     if(key === 'block' && jsonPars[key] === 'warning'){
-    //         if(key === "content"){
-            
-    //             masArrya(jsonPars[key])   
-    //         }
-    //     }
         
+    }
     
-    // } 
-    // console.log(errorArray)
-// } 
+}
+
+    
+const regulationsWarning = (block, levl = 0)=>{
+    
+    let nom = 1;
+    for (key in block){
+        console.log(levl, block[key]['key']['value'], block[key]['value']['value'])
+        // console.log(levl, block[key]['value']['value'])
+        // console.log(block[key]['type'])
+        
+        if(block[key]['type'] === 'Property'){
+            if(block[key]['value']['type'] === 'Array'){
+                for(let i = 0; i < block[key]['value']['children'].length; i++){
+                    if (block[key]['value']['children'][i]['type'] === 'Object'){
+                        regulationsWarning(block[key]['value']['children'][i]['children'], ++levl)    
+                    }
+                            // regulationsWarning(block[key]['value']['children'][i])
+                            // console.log(i, block[key]['value']['children'][i]['type'] === 'Object')    
+                        }    
+            }
+            // if(block[key]['value']['type'] === 'Array'){
+            //     console.log('Key!',block[key])
+
+            //     console.log('children!',block[key]['value']['children'])    
+            // }
+            // regulationsWarning(block[key]['value'])
+
+            // console.log(nom++,block[key]['value']['type'])        
+        }
+
+        // if(block[key]['value']['type'] === 'Array'){
+        //     for(let i = 0; i < block[key]['value']['children'].length; i++){
+        //         // regulationsWarning(block[key]['value']['children'][i])
+        //         console.log(block[key]['value']['children'][i])    
+        //     }
+        //     // regulationsWarning(block[key]['value']['children'])
+        //     // console.log(block[key]['value']['children'])
+        //     // console.log(block[key]['value']['children'])    
+        // }else if(block[key]['value']['type'] === 'Object'){
+        //     console.log('Объект')
+        // }
+
+        // console.log(block[key]['value']['children'])
+        // console.log(jsonPars['children'][i]['value']['type'])
+    }
+}
 
 
-
+const json = `{
+    "block": "warning",
+    "content": [
+        {
+            "block": "placeholder",
+            "mods": { "size": "m" },
+            "content": [
+                {
+                    "block": "text1",
+                    "mods": { "size": "m" }
+                },
+                {
+                    "block": "text2",
+                    "mods": { "size": "m" }
+                }
+            ]
+        },
+        {
+            "elem": "content",
+            "content": [
+                {
+                    "block": "text3",
+                    "mods": { "size": "m" }
+                },
+                {
+                    "block": "text4",
+                    "mods": { "size": "l" }
+                }
+            ]
+        }
+    ]
+}`;
 
 const masArrya = (content, levl = 0)=>{
 
@@ -120,39 +164,8 @@ const seterrorArray = (code = "", error= "")=>{
     })        
 }
 
-const json = `{
-    "block": "warning",
-    "content": [
-        {
-            "block": "placeholder",
-            "mods": { "size": "m" },
-            "content": [
-                {
-                    "block": "text",
-                    "mods": { "size": "m" }
-                },
-                {
-                    "block": "text",
-                    "mods": { "size": "m" }
-                }
-            ]
-        },
-        {
-            "elem": "content",
-            "content": [
-                {
-                    "block": "text",
-                    "mods": { "size": "m" }
-                },
-                {
-                    "block": "text",
-                    "mods": { "size": "l" }
-                }
-            ]
-        }
-    ]
-}`;
- 
+
+
 const json1 = `{
     "block": {"warning": "Test"}
     
