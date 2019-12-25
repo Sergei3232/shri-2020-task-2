@@ -1,7 +1,19 @@
-const parse = require('json-to-ast');
+const parse = require('json-to-ast')
 
-let referenceSize = null;
-const errorArray = [];
+const typeError = {textSize:false}
+const sizeTextBox = []   //Записываем эталонны размер для блока варнинг при каждой отправке блока на проверку будет создаватсья размер
+const errorArray  = []   //Массив возврата ошибок
+let locWarning    = null //Позиция текущего блока Варнинг 
+
+// let globalObject = null
+
+// if (globalThis){
+//     globalObject = window 
+// }else if(global){
+//     globalObject = global
+// }
+
+
 
 const link = (str) => {
 
@@ -9,15 +21,14 @@ const link = (str) => {
         loc: true,
         source: 'data.json'
     };
-
     const jsonPars = parse(str, settings)
 
-    stepBlock(jsonPars)
+    stepBlock(jsonPars)    
 
+    console.log(errorArray)
 }
 
-const stepBlock = (jsonPars, num = 0) => {
-    // console.log(jsonPars['type'])
+const stepBlock = (jsonPars) => {
 
     if (jsonPars['type'] === 'Object') {
         const parsPbject = jsonPars['children']
@@ -26,10 +37,11 @@ const stepBlock = (jsonPars, num = 0) => {
             if (parsPbject[i]['key']['value'] === 'block') {
                 // Ищем блок Warning
                 if (parsPbject[i]['value']['value'] === 'warning') {
+                    sizeTextBox.push(0)
+                    locWarning = parsPbject[i]['loc']  
                     regulationsWarning(parsPbject)
-                    // console.log('Это варнинг',parsPbject)    
                 }
-                // console.log('Блок', parsPbject[i]['value']['value'])        
+
             } else if (parsPbject[i]['value']['type'] === 'Array') {
                 stepBlock(parsPbject[i]['value'])
             }
@@ -38,15 +50,12 @@ const stepBlock = (jsonPars, num = 0) => {
         const parsPbject = jsonPars['children']
         for (let i = 0; i < parsPbject.length; i++) {
             stepBlock(parsPbject[i])
-            // console.log(parsPbject[i]['type'])    
         }
     }
 }
 
-
-
 const regulationsWarning = (block) => {
-    console.log(block['type'])
+    // console.log(block['type'])
     if (block['type'] === undefined) {//При входе тип не будет определен пока не точно
         for (let i = 0; i < block.length; i++) {
             if (block[i]['key']['value'] === 'content') {
@@ -54,49 +63,74 @@ const regulationsWarning = (block) => {
             }
 
         }
-    }else if(block['type']==='Array'){
+    } else if (block['type'] === 'Array') {
         const parsPbject = block['children']
         for (let i = 0; i < parsPbject.length; i++) {
-            regulationsWarning(parsPbject[i])    
+            regulationsWarning(parsPbject[i])
         }
-    }else if (block['type'] === 'Object') {
+    } else if (block['type'] === 'Object') {
         const parsPbject = block['children']
 
         for (let i = 0; i < parsPbject.length; i++) {
             if (parsPbject[i]['key']['value'] === 'block') {
-                
-                if(parsPbject[i]['value']['value']==='text1'){
-                    console.log(parsPbject[i]['value'])    
-                }
-                // console.log('Тут block', parsPbject[i]['value']['value'])
 
-                // console.log(parsPbject[i]['key'])
-                // Ищем блок Warning
-                // if (parsPbject[i]['value']['value'] === 'warning') {
-                //     regulationsWarning(parsPbject)
-                //     // console.log('Это варнинг',parsPbject)    
-                // }
-                // console.log('Блок', parsPbject[i]['value']['value'])        
+                if (parsPbject[i]['value']['value'] === 'text') {
+
+                    let indexBox = i + 1;
+                    while (parsPbject[indexBox] !== undefined && parsPbject[indexBox]['key']['value'] === 'mods') {                       
+                        sizeCheck(parsPbject[indexBox])
+                        indexBox++
+                    }
+
+                }
+
             } else if (parsPbject[i]['value']['type'] === 'Array') {
                 regulationsWarning(parsPbject[i]['value'])
-               
-                // console.log('Тут массив')
-                // console.log(parsPbject[i]['value'])
-                // console.log(parsPbject[i]['value'])
-                // stepBlock(parsPbject[i]['value'])
             }
         }
     }
+}
 
+const sizeCheck = (boxSize) => {
+    
+    if (!typeError.textSize){
+        if (boxSize['value']['type'] === 'Object') {
+            const parsPbject = boxSize['value']['children']
 
-
-    // console.log(block)
-    // for (key in block){
-    //     console.log(key)   
-    // }
+            for (let i = 0; i < parsPbject.length; i++) {
+                if(parsPbject[i]['key']['value']==='size'){
+                    
+                    if(sizeTextBox[sizeTextBox.length-1] === 0){
+                        sizeTextBox[sizeTextBox.length-1] = parsPbject[i]['value']['value'] 
+                    }else if(sizeTextBox[sizeTextBox.length-1]!== parsPbject[i]['value']['value']){
+                        seterrorArray("WARNING.TEXT_SIZES_SHOULD_BE_EQUAL", "Тексты в блоке warning должны быть одного размера")
+                        typeError.textSize = true
+                    }
+                         
+                }
+               
+            }
+    }
+    }
+    
 
 }
 
+const seterrorArray = (code = "", error = "") => {
+    const location = {
+        start: null,
+        end: null}
+    
+    if (locWarning!==null){
+        location.start = {start: { column: locWarning['start']['column'], line: locWarning['start']['line'] }}
+        location.end   = { column: locWarning['end']['column'], line: locWarning['end']['line'] }
+        }
+    errorArray.push({
+        code: code,
+        error: error,
+        location: location
+    })
+}
 
 const json = `{
     "block": "warning",
@@ -106,12 +140,12 @@ const json = `{
             "mods": { "size": "m" },
             "content": [
                 {
-                    "block": "text1",
+                    "block": "text",
                     "mods": { "size": "m" }
                 },
                 {
-                    "block": "text2",
-                    "mods": { "size": "m" }
+                    "block": "text",
+                    "mods": { "size": "l" }
                 }
             ]
         },
@@ -119,63 +153,20 @@ const json = `{
             "elem": "content",
             "content": [
                 {
-                    "block": "text3",
+                    "block": "text",
                     "mods": { "size": "m" }
                 },
                 {
-                    "block": "text4",
-                    "mods": { "size": "l" }
+                    "block": "text",
+                    "mods": { "size": "m" }
                 }
             ]
         }
     ]
 }`;
 
-const masArrya = (content, levl = 0) => {
-
-    for (let i = 0; i < content.length; i++) {
-
-        if (content[i].block != undefined && content[i].block === 'text') {
-
-            if (content[i].mods != undefined && content[i].mods.size != undefined) {
-                if (referenceSize === null) {
-                    referenceSize = content[i].mods.size;
-                } else if (content[i].mods.size != undefined && content[i].mods.size !== referenceSize) {
-                    seterrorArray("WARNING.TEXT_SIZES_SHOULD_BE_EQUAL", "Тексты в блоке warning должны быть одного размера")
-
-                }
-            }
-        }
-
-        let testArrya = content[i];
-
-        for (let key in testArrya) {
-
-            if (key === "content") {
-                masArrya(testArrya[key], ++levl)
-            }
-        }
-
-    }
-
-}
-
-const seterrorArray = (code = "", error = "") => {
-    errorArray.push({
-        code: code,
-        error: error,
-        location: {
-            start: { column: 0, line: 0 },
-            end: { column: 0, line: 0 }
-        }
-    })
-}
 
 
-
-const json1 = `{
-    "block": {"warning": "Test"}
-    
-}`;
-
+// window.link = 
+// globalObject.link = link(json)
 link(json)
