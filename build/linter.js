@@ -122,8 +122,7 @@ globalObject.link = (str) => {
         })
     }
 
-    stepBlock(jsonPars)
-    // console.log(errorArray)    
+    stepBlock(jsonPars)    
     return errorArray
 }
 
